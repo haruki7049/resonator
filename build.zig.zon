@@ -1,0 +1,22 @@
+.{
+    .name = .resonator,
+    .version = "0.1.0",
+    .fingerprint = 0x2e7bd8a5ce5ff5fe, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.16.0",
+
+    .dependencies = .{
+        .phrases = .{
+            .url = "git+https://github.com/haruki7049/phrases#524d42fa408e0834efcd2835e0e9a849ea1bd238",
+            .hash = "phrases-0.1.0-m8uXUcJ5AADNbVNrVA3b_IUJpXPL_dt4kXmkRWEacj9n",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "README.md",
+    },
+}
