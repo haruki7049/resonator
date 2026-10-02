@@ -1,29 +1,23 @@
 # resonator
 Voice-routing structures in Zig
 
-Instrument string-to-track (voice lane) mapping, canon voice routing, and Single String Model scheduling of
-note onsets with equal-power micro-fades. Depends only on `std` and
-[`phrases`](https://github.com/haruki7049/phrases) (`Position`, `TimeSignature`, `Pitch`, ...). Requires Zig `0.16.0`.
+Instrument string-to-track (voice lane) mapping and canon voice routing. Depends only on `std` and
+[`phrases`](https://github.com/haruki7049/phrases) (`Position`, `Pitch`, ...). Requires Zig `0.16.0`.
 
-The structures do not hold audio: they decide *which lane* a note goes to and *which frames* of it sound, so
-any renderer (for example one built on [`lightmix`](https://github.com/haruki7049/lightmix)) can apply the
-result to its own sample buffers.
+The structures do not hold audio or schedule it: they decide *which lane* a note goes to and *where and how
+transposed* a canon voice plays it. Scheduling and rendering live in a sequencer (for example one built on
+[`lightmix`](https://github.com/haruki7049/lightmix)).
 
 ## Provided types
 
 | Symbol | Description |
 | :--- | :--- |
-| `Instrument` | Multi-string instrument: `name` and one track index per string, with `stringCount` and `getTrackIndex` (`error.InvalidStringIndex` when out of range) |
-| `Stagger.VoiceConfig(T)` | Canon voice: `bar_offset`, `beat_offset`, `semitones`, `octaves`, `string_index`, `volume`, with `totalSemitones`, `offsetPosition`, `eql`, `eqlAll` |
-| `VoiceScheduler(T)` | Single String Model scheduler for one voice lane: `schedule` turns `Onset`s (`position` + `frames`) into `ScheduledEvent`s (start frame, truncated `active_frames`, release / attack micro-fade bounds); `computeGain` evaluates the equal-power `sin` / `cos` fade curves |
+| `Instrument` | Multi-string instrument: `name` and one track index per string (0-indexed from the lowest string), with `stringCount` and `getTrackIndex` (`error.InvalidStringIndex` when out of range) |
+| `Stagger.VoiceConfig(T)` | Canon voice: `bar_offset`, `beat_offset`, `semitones`, `octaves`, `string_index`, `volume` (of type `T`), with `totalSemitones`, `offsetPosition`, `eql`, `eqlAll` |
 | `phrases` | Re-export of the `phrases` package |
 
-### Single String Model
-
-Each track (or instrument string) is a monophonic voice lane. When a note starts before the previous note on
-the same lane has finished, the previous note is cut `fade_frames` after the new onset with an equal-power
-`cos` release, and the new note fades in with a `sin` attack (unless `enable_attack_fade` is `false`, e.g. for
-percussion). Notes on different lanes never truncate each other, so chords are played on separate strings.
+Each string of an `Instrument` is meant to be its own monophonic voice lane (track), so notes on different
+strings ring together while a new note on the same string replaces the previous one.
 
 ## Usage
 
@@ -41,35 +35,26 @@ mod.addImport("resonator", resonator.module("resonator"));
 const std = @import("std");
 const resonator = @import("resonator");
 
-const Scheduler = resonator.VoiceScheduler(f64);
+const Voice = resonator.Stagger.VoiceConfig(f64);
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
-    // A 6-string guitar whose strings live on tracks 0..5.
+    // A 6-string guitar whose strings live on tracks 0..5 of a sequencer.
     const indices = try allocator.alloc(usize, 6);
     for (indices, 0..) |*index, i| index.* = i;
     var guitar = resonator.Instrument.init("AcousticGuitar", indices);
     defer guitar.deinit(allocator);
-    const track = try guitar.getTrackIndex(2);
-    _ = track;
 
-    // Two notes on one string: the first is cut when the second starts.
-    const onsets = [_]Scheduler.Onset{
-        .{ .position = .{ .bar = 0, .beat = 0.0 }, .frames = 88200 },
-        .{ .position = .{ .bar = 0, .beat = 1.0 }, .frames = 44100 },
-    };
-    // 60 BPM, 4/4, 44100 Hz, 220-frame (5 ms) micro-fades
-    const scheduled = try Scheduler.schedule(allocator, &onsets, 60, .{}, 44100, 220, true);
-    defer allocator.free(scheduled);
+    // A canon voice entering one bar later, a fifth up, shifted by one string.
+    const voice = Voice{ .bar_offset = 1, .semitones = 7, .string_index = 1, .volume = 0.8 };
 
-    for (scheduled) |se| {
-        for (0..se.active_frames) |frame| {
-            const gain = Scheduler.computeGain(se, frame);
-            // mix sample (se.start_frame + frame) of onsets[se.event_index] scaled by `gain`
-            _ = gain;
-        }
-    }
+    // Route a phrase note (bar 0, beat 1.0, string 2, E4) through the voice.
+    const position = voice.offsetPosition(.{ .bar = 0, .beat = 1.0 });
+    const pitch = (resonator.phrases.Pitch{ .code = .e, .octave = 4 }).add(voice.totalSemitones());
+    const track = try guitar.getTrackIndex((2 + voice.string_index) % guitar.stringCount());
+
+    std.debug.print("track {d}: bar {d} beat {d} {s}{d}\n", .{ track, position.bar, position.beat, @tagName(pitch.code), pitch.octave });
 }
 ```
 
