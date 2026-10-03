@@ -8,11 +8,11 @@
 
 linkFarm "zig-packages" [
   {
-    name = "phrases-0.1.0-m8uXUcJ5AADNbVNrVA3b_IUJpXPL_dt4kXmkRWEacj9n";
+    name = "phrases-0.1.0-m8uXUf6GAADLISanJCs5q-TdA1CaLL6a5aK3ULyDRfrw";
     path = fetchgit {
       url = "https://github.com/haruki7049/phrases";
-      rev = "524d42fa408e0834efcd2835e0e9a849ea1bd238";
-      hash = "sha256-/JtfGRmsIg5+cx5KIuLTLqgrxS6H3/Dj0/aglpwqNEc=";
+      rev = "187b8e3dddadfa19a2ea7af7f2032b00005a07b9";
+      hash = "sha256-KLfppRG60WdVekhKtNZTLuquM+PyiwCz45Eerpb0E0c=";
     };
   }
 ]

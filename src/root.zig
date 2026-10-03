@@ -4,7 +4,7 @@
 
 const std = @import("std");
 
-/// The `phrases` package this library is built on (`Position`, `TimeSignature`, `Pitch`, ...).
+/// The `phrases` package this library is built on (`Position`, `TimeSignature`, ...).
 pub const phrases = @import("phrases");
 /// Multi-string instrument mapping each string to a track (voice lane) index.
 pub const Instrument = @import("./instrument.zig");
@@ -47,8 +47,9 @@ test "Stagger voice routes a phrase note onto an instrument lane" {
     try std.testing.expectEqual(@as(usize, 3), pos.bar);
     try std.testing.expectEqual(@as(f64, 1.5), pos.beat);
 
-    const pitch = (phrases.Pitch{ .code = .c, .octave = 4 }).add(voice.totalSemitones());
-    try std.testing.expectEqual(phrases.Pitch{ .code = .g, .octave = 4 }, pitch);
+    // The voice transposes by a fifth, 7 semitones. Applying that to the note's pitch is left to
+    // the consumer (for example C4 to G4 with `pitches.TwelveTonePitch.add`).
+    try std.testing.expectEqual(@as(isize, 7), voice.totalSemitones());
 
     // String 2 shifted by the voice's string_index wraps around to string 0.
     const string = (2 + voice.string_index) % rhodes.stringCount();
