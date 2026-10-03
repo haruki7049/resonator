@@ -1,11 +1,11 @@
 //! Voice-routing structures for multi-string instruments.
 //!
-//! std + `phrases` only: instrument string-to-track (voice lane) mapping and canon voice routing.
+//! std + `meters` only: instrument string-to-track (voice lane) mapping and canon voice routing.
 
 const std = @import("std");
 
-/// The `phrases` package this library is built on (`Position`, `TimeSignature`, ...).
-pub const phrases = @import("phrases");
+/// The `meters` package this library is built on (`Position`, `TimeSignature`, ...).
+pub const meters = @import("meters");
 /// Multi-string instrument mapping each string to a track (voice lane) index.
 pub const Instrument = @import("./instrument.zig");
 /// Canon voice routing (`Stagger.VoiceConfig(T)`): position offset, transposition, string index, volume.
@@ -42,7 +42,7 @@ test "Stagger voice routes a phrase note onto an instrument lane" {
     defer rhodes.deinit(allocator);
 
     // A phrase note at bar 1, beat 1.0 on string 2, played by the voice.
-    const base: phrases.Position = .{ .bar = 1, .beat = 1.0 };
+    const base: meters.Position = .{ .bar = 1, .beat = 1.0 };
     const pos = voice.offsetPosition(base);
     try std.testing.expectEqual(@as(usize, 3), pos.bar);
     try std.testing.expectEqual(@as(f64, 1.5), pos.beat);
