@@ -3,7 +3,7 @@
 Voice-routing structures in Zig
 
 Instrument string-to-track (voice lane) mapping and canon voice routing. Depends only on `std` and
-[`phrases`](https://github.com/haruki7049/phrases) (`Position`, ...). Requires Zig `0.16.0`.
+[`meters`](https://github.com/haruki7049/meters) (`Position`, ...). Requires Zig `0.16.0`.
 
 The structures do not hold audio or schedule it: they decide *which lane* a note goes to and *where and how
 transposed* a canon voice plays it. Scheduling and rendering live in a sequencer (for example one built on
@@ -15,7 +15,7 @@ transposed* a canon voice plays it. Scheduling and rendering live in a sequencer
 | :--- | :--- |
 | `Instrument` | Multi-string instrument: `name` and one track index per string (0-indexed from the lowest string), with `stringCount` and `getTrackIndex` (`error.InvalidStringIndex` when out of range) |
 | `Stagger.VoiceConfig(T)` | Canon voice: `bar_offset`, `beat_offset`, `semitones`, `octaves`, `string_index`, `volume` (of type `T`), with `totalSemitones`, `offsetPosition`, `eql`, `eqlAll` |
-| `phrases` | Re-export of the `phrases` package |
+| `meters` | Re-export of the `meters` package |
 
 Each string of an `Instrument` is meant to be its own monophonic voice lane (track), so notes on different
 strings ring together while a new note on the same string replaces the previous one.

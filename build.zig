@@ -4,18 +4,18 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const phrases = b.dependency("phrases", .{
+    const meters = b.dependency("meters", .{
         .target = target,
         .optimize = optimize,
     });
 
-    // Library module declaration (std + phrases only)
+    // Library module declaration (std + meters only)
     const mod = b.addModule("resonator", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "phrases", .module = phrases.module("phrases") },
+            .{ .name = "meters", .module = meters.module("meters") },
         },
     });
 
