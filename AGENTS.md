@@ -8,7 +8,7 @@ ______________________________________________________________________
 
 `resonator` is a library of voice-routing structures in Zig. It decides *which lane* a note goes to and *where and how transposed* a canon voice plays it; it does not hold, schedule, or render audio.
 
-- **`std` + `phrases` Only**: The only dependency is [`phrases`](https://github.com/haruki7049/phrases) (`Position`, `Pitch`). Do not add `lightmix` or any audio package; scheduling and rendering belong to a sequencer such as [`sequencer`](https://github.com/haruki7049/sequencer).
+- **`std` + `phrases` Only**: The only dependency is [`phrases`](https://github.com/haruki7049/phrases) (`Position`). Do not add `lightmix` or any audio package; scheduling and rendering belong to a sequencer such as [`sequencer`](https://github.com/haruki7049/sequencer). Do not add a pitch library such as [`pitches`](https://github.com/haruki7049/pitches) either: a voice reports its transposition as semitones (`totalSemitones`), and applying it to a pitch is the consumer's job.
 - **Library Package**: The public module is registered as `resonator` via `b.addModule` in `build.zig`, so downstream projects consume it with `b.dependency("resonator", .{ .target = target, .optimize = optimize })`.
 - **Upstream Boundary**: `phrases` is pinned to a commit hash in `build.zig.zon`, and `src/root.zig` re-exports it as `resonator.phrases`. Downstream packages also depend on `phrases` directly and test that both paths resolve to one `phrases.Position` type, so `resonator` must pin the same `phrases` commit as its consumers. Bump it only together with them (see "Updating dependencies" in [Section 3](#3-verification-commands)).
 - **Downstream Consumers**: [`sequencer`](https://github.com/haruki7049/sequencer) (re-exports `Instrument` and builds instruments in `Sequencer.createInstrument`) and [`pulse`](https://github.com/haruki7049/pulse) pin `resonator` to a commit hash. A change here reaches them only when they bump that pin. Treat a change to a public type's fields, a function signature, an error, or the ownership of `Instrument.string_indices` as a breaking change, and state it in the PR description.
@@ -22,7 +22,8 @@ ______________________________________________________________________
   - **One string, one monophonic lane**: Each string of an `Instrument` maps to its own track. Notes on different strings ring together; a new note on the same string replaces the previous one. Keep this model: the truncation itself is implemented downstream, and it relies on it.
   - Strings are 0-indexed from the lowest string. An out-of-range index returns `error.InvalidStringIndex`; never wrap or clamp it silently.
   - `Instrument.init` takes ownership of `string_indices`, and `deinit` frees it with the allocator passed in.
-  - Positions and pitches are `phrases` types. Do not duplicate them here.
+  - Positions are `phrases` types. Do not duplicate them here.
+  - `resonator` has no pitch type. Transposition is an integer number of semitones, an octave counting as 12.
   - `VoiceConfig.eql` compares floating-point fields within `1e-6`; keep that tolerance in sync with its doc comment.
 
 ______________________________________________________________________
