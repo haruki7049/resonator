@@ -21,7 +21,10 @@ pub fn VoiceConfig(comptime T: type) type {
 
         const Self = @This();
 
-        /// Returns total semitones of transposition combining semitones and octaves.
+        /// Returns total semitones of transposition combining semitones and octaves (12 semitones each).
+        ///
+        /// `resonator` has no pitch type: the consumer applies this amount to its own pitches, for
+        /// example with `pitches.TwelveTonePitch.add`.
         pub fn totalSemitones(self: Self) isize {
             return self.semitones + (self.octaves * 12);
         }
